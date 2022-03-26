@@ -52,7 +52,12 @@ body{
 	margin:auto;
 	text-align: center;
 }
-
+img{
+	display:block;
+	width:100%; 
+	height:100%;
+	object-fit: cover;
+}
 .logo{
 	height:25vh;
 	width:auto;
@@ -61,9 +66,12 @@ body{
 	margin-top:2vh;
 }
 
-#loadingBlock,#errorBrowserBlock{
-	background-image:url("../img/background.png");
-	background-size:cover;
+.background{
+	top:0;
+	left:0; 
+	position:fixed; 
+	min-width:100%;
+	min-height:100%;
 }
 
 #emptyBar{
@@ -122,7 +130,34 @@ body{
 	margin-right:auto;
 }
 
+.web3modal-modal-card { font-family: sans-serif}
 
+.loader {
+	border: 4px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 4px solid #3498db;
+	width: 40px;
+	height: 40px;
+	margin: auto;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	-webkit-animation: spin 2s linear infinite; /* Safari */
+	animation: spin 2s linear infinite;
+  }
+  
+  /* Safari */
+  @-webkit-keyframes spin {
+	0% { -webkit-transform: rotate(0deg); }
+	100% { -webkit-transform: rotate(360deg); }
+  }
+  
+  @keyframes spin {
+	0% { transform: rotate(0deg); }
+	100% { transform: rotate(360deg); }
+  }
 /* When aspect-ratio is smaller than 4/3*/
 
 /*@media (max-aspect-ratio: 4/3){
