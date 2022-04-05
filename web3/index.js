@@ -1,14 +1,17 @@
-// Load web3modal to connect to wallet
+// load network.js to get network/chain id
+document.body.appendChild(Object.assign(document.createElement("script"), { type: "text/javascript", src: "./network.js" }));
+// load web3modal to connect to wallet
 document.body.appendChild(Object.assign(document.createElement("script"), { type: "text/javascript", src: "./web3/lib/web3modal.js" }));
-// Load web3js to create transactions
+// load web3js to create transactions
 document.body.appendChild(Object.assign(document.createElement("script"), { type: "text/javascript", src: "./web3/lib/web3.min.js" }));
+// uncomment to enable torus wallet
+// document.body.appendChild(Object.assign(document.createElement("script"), { type: "text/javascript", src: "https://unpkg.com/@toruslabs/torus-embed" }));
+// uncomment to enable walletconnect
+// document.body.appendChild(Object.assign(document.createElement("script"), { type: "text/javascript", src: "https://unpkg.com/@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js" }));
 
-window.web3ChainId = 1;
-
-// Define web3gl to unity interface
+// load web3gl to connect to unity
 window.web3gl = {
   networkId: 0,
-  debugMode: false,
   connect,
   connectAccount: "",
   signMessage,
@@ -19,23 +22,26 @@ window.web3gl = {
   sendContractResponse: "",
 };
 
+// will be defined after connect()
 let provider;
 let web3;
 
 /*
-Establish connection to web3.
+paste this in inspector to connect to wallet:
+window.web3gl.connect()
 */
-async function connect(appLogo, appTitle, appDesc) {
-  
+async function connect() {
+  // uncomment to enable torus and walletconnect
   const providerOptions = {
-	injected: {
-		display: {
-		  logo: appLogo,
-		  name: appTitle,
-		  description: appDesc
-		},
-		package: null
-	}
+    // torus: {
+    //   package: Torus,
+    // },
+    // walletconnect: {
+    //   package: window.WalletConnectProvider.default,
+    //   options: {
+    //     infuraId: "00000000000000000000000000000000",
+    //   },
+    // },
   };
 
   const web3Modal = new window.Web3Modal.default({
@@ -44,59 +50,66 @@ async function connect(appLogo, appTitle, appDesc) {
 
   web3Modal.clearCachedProvider();
 
-  // Create a provider
+  // set provider
   provider = await web3Modal.connect();
-  // Instantiate Web3
   web3 = new Web3(provider);
 
-  // Set network id from the connected provider.
+  // set current network id
   web3gl.networkId = parseInt(provider.chainId);
 
-  // Set system chain id
+  // if current network id is not equal to network id, then switch
   if (web3gl.networkId != window.web3ChainId) {
-	window.web3ChainId = web3gl.networkId;
+    try {
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: `0x${window.web3ChainId.toString(16)}` }], // chainId must be in hexadecimal numbers
+      });
+    } catch {
+      // if network isn't added, pop-up metamask to add
+      await addEthereumChain();
+    }
   }
 
-  // Set the current account from the provider.
-  web3gl.connectAccount = provider.selectedAddress;
+  // set current account
+  // provider.selectedAddress works for metamask and torus
+  // provider.accounts[0] works for walletconnect
+  web3gl.connectAccount = provider.selectedAddress || provider.accounts[0];
 
-  // If the account has changed, reload the page.
+  // refresh page if player changes account
   provider.on("accountsChanged", (accounts) => {
     window.location.reload();
   });
 
-  // Update chain id if player changes network.
+  // update if player changes network
   provider.on("chainChanged", (chainId) => {
     web3gl.networkId = parseInt(chainId);
   });
 }
 
 /*
-Implement sign message
+paste this in inspector to connect to sign message:
+window.web3gl.signMessage("hello")
 */
 async function signMessage(message) {
   try {
     const from = (await web3.eth.getAccounts())[0];
-	
-	log('signMessage: message: ' + message);
-	
     const signature = await web3.eth.personal.sign(message, from, "");
     window.web3gl.signMessageResponse = signature;
-	  log('signMessage: signature: ' + signature);
   } catch (error) {
     window.web3gl.signMessageResponse = error.message;
-	  log('signMessage: error: ' + error.message);
   }
 }
 
 /*
-Implement send transaction
+paste this in inspector to send eth:
+const to = "0xdD4c825203f97984e7867F11eeCc813A036089D1"
+const value = "12300000000000000"
+const gasLimit = "21000" // gas limit
+const gasPrice = "33333333333"
+window.web3gl.sendTransaction(to, value, gasLimit, gasPrice);
 */
 async function sendTransaction(to, value, gasLimit, gasPrice) {
   const from = (await web3.eth.getAccounts())[0];
-  
-  log('sendTransaction to: ' + to + ' value: ' + value + ' gasLimit: ' + gasLimit + ' gasPrice: ' + gasPrice);
-  
   web3.eth
     .sendTransaction({
       from,
@@ -107,22 +120,25 @@ async function sendTransaction(to, value, gasLimit, gasPrice) {
     })
     .on("transactionHash", (transactionHash) => {
       window.web3gl.sendTransactionResponse = transactionHash;
-	  log('sendTransaction: txnHash: ' + transactionHash);
     })
     .on("error", (error) => {
       window.web3gl.sendTransactionResponse = error.message;
-	  log('sendTransaction: error: ' + error.message);
     });
 }
 
 /*
-Implement send contract
+paste this in inspector to connect to interact with contract:
+const method = "increment"
+const abi = `[ { "inputs": [], "name": "increment", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "x", "outputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ], "stateMutability": "view", "type": "function" } ]`;
+const contract = "0xB6B8bB1e16A6F73f7078108538979336B9B7341C"
+const args = "[]"
+const value = "0"
+const gasLimit = "222222" // gas limit
+const gasPrice = "333333333333"
+window.web3gl.sendContract(method, abi, contract, args, value, gasLimit, gasPrice)
 */
 async function sendContract(method, abi, contract, args, value, gasLimit, gasPrice) {
   const from = (await web3.eth.getAccounts())[0];
-  
-  log('sendContract method: ' + method + ' value: ' + value + ' gasLimit: ' + gasLimit + ' gasPrice: ' + gasPrice + ' args: ' + args);
-  
   new web3.eth.Contract(JSON.parse(abi), contract).methods[method](...JSON.parse(args))
     .send({
       from,
@@ -132,16 +148,42 @@ async function sendContract(method, abi, contract, args, value, gasLimit, gasPri
     })
     .on("transactionHash", (transactionHash) => {
       window.web3gl.sendContractResponse = transactionHash;
-	  log('sendContract: txnHash: ' + transactionHash);
     })
     .on("error", (error) => {
       window.web3gl.sendContractResponse = error.message;
-	  log('sendContract: error: ' + error.message);
     });
 }
 
-function log(msg){
-	if (window.web3gl.debugMode) {
-		console.log("web3gl: " + msg);
-	}
+// add new wallet to in metamask
+async function addEthereumChain() {
+  const account = (await web3.eth.getAccounts())[0];
+
+  // fetch https://chainid.network/chains.json
+  const response = await fetch("https://chainid.network/chains.json");
+  const chains = await response.json();
+
+  // find chain with network id
+  const chain = chains.find((chain) => chain.chainId == window.web3ChainId);
+
+  const params = {
+    chainId: "0x" + chain.chainId.toString(16), // A 0x-prefixed hexadecimal string
+    chainName: chain.name,
+    nativeCurrency: {
+      name: chain.nativeCurrency.name,
+      symbol: chain.nativeCurrency.symbol, // 2-6 characters long
+      decimals: chain.nativeCurrency.decimals,
+    },
+    rpcUrls: chain.rpc,
+    blockExplorerUrls: [chain.explorers && chain.explorers.length > 0 && chain.explorers[0].url ? chain.explorers[0].url : chain.infoURL],
+  };
+
+  await window.ethereum
+    .request({
+      method: "wallet_addEthereumChain",
+      params: [params, account],
+    })
+    .catch(() => {
+      // I give up
+      window.location.reload();
+    });
 }

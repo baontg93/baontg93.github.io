@@ -116,15 +116,15 @@
     var isChrome = isIOSChrome || (isChromium !== null && typeof isChromium !== "undefined" && vendorName === "Google Inc." && isOpera === false && isIEedge === false);
 
     var buildUrl = "Build";
-    var loaderUrl = buildUrl + "/Build.loader.js";
+    var loaderUrl = buildUrl + "/DeployWebGL.loader.js";
     var config = {
-      dataUrl: buildUrl + "/Build.data",
-      frameworkUrl: buildUrl + "/Build.framework.js",
-      codeUrl: buildUrl + "/Build.wasm",
-      streamingAssetsUrl: "StreamingAssets",
-      companyName: "DefaultCompany",
+      dataUrl: buildUrl + "/DeployWebGL.data",
+      frameworkUrl: buildUrl + "/DeployWebGL.framework.js",
+      codeUrl: buildUrl + "/DeployWebGL.wasm",
+        streamingAssetsUrl: "StreamingAssets",
+      companyName: "Royale Kingdom",
       productName: "Royale Kingdom",
-      productVersion: "1.0.a.0012",
+      productVersion: "1.0.a.0018",
     };
 
     var container = document.querySelector("#gameContainer");
