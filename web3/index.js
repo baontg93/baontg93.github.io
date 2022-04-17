@@ -187,3 +187,9 @@ async function addEthereumChain() {
       window.location.reload();
     });
 }
+
+window.getParamFromURL = function (param) {
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  return urlParams.get(param)
+}
