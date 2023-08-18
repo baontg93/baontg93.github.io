@@ -1,158 +1,60 @@
 <!DOCTYPE html>
-<html lang="en-us">
-
+<html>
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>Royale Kingdom</title>
-  <link rel="shortcut icon" href="TemplateData/img/favicon.ico">
-  <link rel="stylesheet" href="TemplateData/css/style.css">
+
+  <title>Cocos Creator | Portal</title>
+
+  <!--http://www.html5rocks.com/en/mobile/mobifying/-->
+  <meta name="viewport"
+        content="width=device-width,user-scalable=no,initial-scale=1,minimum-scale=1,maximum-scale=1,minimal-ui=true"/>
+
+  <!--https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- force webkit on 360 -->
+  <meta name="renderer" content="webkit"/>
+  <meta name="force-rendering" content="webkit"/>
+  <!-- force edge on IE -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <!-- force full screen on some browser -->
+  <meta name="full-screen" content="yes"/>
+  <meta name="x5-fullscreen" content="true"/>
+  <meta name="360-fullscreen" content="true"/>
+
+  <!--fix fireball/issues/3568 -->
+  <!--<meta name="browsermode" content="application">-->
+  <meta name="x5-page-mode" content="app">
+
+  <!--<link rel="apple-touch-icon" href=".png" />-->
+  <!--<link rel="apple-touch-icon-precomposed" href=".png" />-->
+
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+
 </head>
-
 <body>
-
-  <div class="keepRatio">
-    <div id="gameContainer" class="unity-desktop webgl-content">
-      <!-- <button id="fullScreenButton" onclick="ToggleFullScreen()"></button> -->
-      <canvas id="gameCanvas"></canvas>
-      <div id="loadingBlock">
-        <img class="background" src="TemplateData/img/background.png"></img>
-        <div class="loader"></div>
-        <div id="warningBrowserBlock" style="display:none;">
-          <div class="browserIcons">
-            <a href="https://www.mozilla.org/firefox" target="_blank"><img src="TemplateData/img/browser-firefox.png"
-                alt="Firefox browser"></a>
-            <a href="https://www.google.com/chrome" target="_blank"><img src="TemplateData/img/browser-chrome.png"
-                alt="Chrome browser"></a>
-            <a href="https://www.apple.com/safari/" target="_blank"><img src="TemplateData/img/browser-safari.png"
-                alt="Safari browser"></a>
-          </div>
-        </div>
+  <div id="GameDiv" cc_exact_fit_screen="true">
+      <div id="Cocos3dGameContainer">
+        <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
       </div>
-
-      <div id="errorBrowserBlock" style="display:none;">
-        <img class="logo" src="TemplateData/img/Logo.png"></img>
-        <div id="errorContent" style="display:none;">
-          <div class="browserIcons">
-            <a href="https://www.mozilla.org/firefox" target="_blank"><img src="TemplateData/img/browser-firefox.png"
-                alt="Firefox browser"></a>
-            <a href="https://www.google.com/chrome" target="_blank"><img src="TemplateData/img/browser-chrome.png"
-                alt="Chrome browser"></a>
-            <a href="https://www.apple.com/safari/" target="_blank"><img src="TemplateData/img/browser-safari.png"
-                alt="Safari browser"></a>
-          </div>
-        </div>
-      </div>
-
     </div>
-  </div>
-  <script src="web3/index.js"></script>
-  <script>
-    function ToggleFullScreen() {
-      var isInFullScreen = (document.fullscreenElement && document.fullscreenElement !== null) ||
-        (document.webkitFullscreenElement && document.webkitFullscreenElement !== null) ||
-        (document.msFullscreenElement && document.msFullscreenElement !== null);
+  
+<!-- Polyfills bundle. -->
+<script src="src/polyfills.bundle.js" charset="utf-8"> </script>
 
-      var element = document.body.getElementsByClassName("webgl-content")[0];
+<!-- SystemJS support. -->
+<script src="src/system.bundle.js" charset="utf-8"> </script>
 
-      if (!isInFullScreen) {
-        // document.getElementById("fullScreenButton").style.backgroundImage = "url('TemplateData/img/fullScreen_off.png')";
-        if (element.webkitRequestFullscreen) {
-          element.webkitRequestFullscreen();
-        } else if (element.msRequestFullscreen) {
-          element.msRequestFullscreen();
-        } else if (element.requestFullscreen) {
-          element.requestFullscreen();
-        }
-      }
-      else {
-        // document.getElementById("fullScreenButton").style.backgroundImage = "url('TemplateData/img/fullScreen_on.png')";
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { //Chrome, Safari and Opera
-          document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { //IE/Edge
-          document.msExitFullscreen();
-        }
-      }
-    }
+<!-- Import map -->
+<script src="src/import-map.json" type="systemjs-importmap" charset="utf-8"> </script>
 
-    function CheckCompatibility() {
-      if (!hasWebGL()) {
-        document.getElementById("errorBrowserBlock").style.display = "inherit";
-      }
-      else if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-        document.getElementById("warningMobileBlock").style.display = "inherit";
-      }
-      else if (!isFirefox && !isSafari && !isChrome) {
-        document.getElementById("warningBrowserBlock").style.display = "inherit";
-      }
-    }
-
-    function hasWebGL() {
-      var supported;
-      try {
-        var canvas = document.createElement('canvas');
-        supported = !!window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
-      } catch (e) { supported = false; }
-
-      try {
-        // let is by no means required, but will help us rule out some old browsers/devices with potentially buggy implementations: http://caniuse.com/#feat=let
-        eval('let foo = 123;');
-      } catch (e) { supported = false; }
-      canvas = undefined;
-      return supported;
-    }
-
-    var isFirefox = typeof InstallTrigger !== 'undefined';
-    var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
-
-    var isChromium = window.chrome;
-    var winNav = window.navigator;
-    var vendorName = winNav.vendor;
-    var isOpera = typeof window.opr !== "undefined";
-    var isIEedge = winNav.userAgent.indexOf("Edge") > -1;
-    var isIOSChrome = winNav.userAgent.match("CriOS");
-    var isChrome = isIOSChrome || (isChromium !== null && typeof isChromium !== "undefined" && vendorName === "Google Inc." && isOpera === false && isIEedge === false);
-
-    var buildUrl = "Build";
-    var loaderUrl = buildUrl + "/DeployWebGL.loader.js";
-    var config = {
-      dataUrl: buildUrl + "/DeployWebGL.data",
-      frameworkUrl: buildUrl + "/DeployWebGL.framework.js",
-      codeUrl: buildUrl + "/DeployWebGL.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-      companyName: "Royale Kingdom",
-      productName: "Royale Kingdom",
-      productVersion: "2022.04.19_0c24edd",
-    };
-
-    var container = document.querySelector("#gameContainer");
-    var canvas = document.querySelector("#gameCanvas");
-    var loadingBar = document.querySelector("#loadingBlock");
-    var progressBarFull = document.querySelector("#fullBar");
-    var progressBarEmpty = document.querySelector("#emptyBar");
-    // var fullscreenButton = document.querySelector("#fullScreenButton");
-
-    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      container.className = "unity-mobile";
-      config.devicePixelRatio = 1;
-    }
-    // CheckCompatibility();
-
-    var script = document.createElement("script");
-    script.src = loaderUrl;
-    script.onload = () => {
-      createUnityInstance(canvas, config, (progress) => {
-      }).then((unityInstance) => {
-        loadingBar.style.display = "none";
-      }).catch((message) => {
-        alert(message);
-      });
-    };
-    document.body.appendChild(script);
-  </script>
+<script>
+    System.import('./index.js').catch(function(err) { console.error(err); })
+</script>
 
 </body>
-
 </html>
